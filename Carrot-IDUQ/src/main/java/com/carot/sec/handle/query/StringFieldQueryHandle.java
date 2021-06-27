@@ -1,12 +1,9 @@
 package com.carot.sec.handle.query;
 
-import com.carot.sec.annotation.CFieldAdd;
 import com.carot.sec.annotation.CFieldQuery;
 import com.carot.sec.context.CSearchPipeContext;
 import com.carot.sec.enums.CFieldTypeEnum;
 import com.carot.sec.interfaces.Handle;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.SortField;

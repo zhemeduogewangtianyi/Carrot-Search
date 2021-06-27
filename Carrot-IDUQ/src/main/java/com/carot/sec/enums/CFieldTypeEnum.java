@@ -1,0 +1,40 @@
+package com.carot.sec.enums;
+
+import org.apache.lucene.document.*;
+import org.apache.lucene.index.IndexableField;
+
+public enum CFieldTypeEnum {
+    /***/
+    INT_POINT("存储 int 类型" , IntPoint.class),
+    LONG_POINT("存储 long 类型" ,NumericDocValuesField.class),
+    TEXT_FIELD("存储 string 类型，分词" ,TextField.class),
+    STRING_FIELD("存储 string 类型，不分词" ,StringField.class),
+    STORED_FIELD("存储类型" ,StoredField.class),
+
+
+
+    ;
+
+    private final String desc;
+    private final Class<?> cls;
+
+    CFieldTypeEnum(String desc , Class<?> cls) {
+        this.cls = cls;
+        this.desc = desc;
+    }
+
+    public IndexableField getClsField(Class<?>[] parameter, Object[] args) {
+        try {
+            Object o = cls.getDeclaredConstructor(parameter).newInstance(args);
+            return (IndexableField)o;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+}

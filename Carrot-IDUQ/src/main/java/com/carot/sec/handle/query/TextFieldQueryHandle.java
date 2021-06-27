@@ -4,6 +4,7 @@ import com.carot.sec.annotation.CFieldQuery;
 import com.carot.sec.context.CSearchPipeContext;
 import com.carot.sec.enums.CFieldTypeEnum;
 import com.carot.sec.interfaces.Handle;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanQuery;
@@ -50,6 +51,8 @@ public class TextFieldQueryHandle implements Handle<CSearchPipeContext, Boolean>
 
             queryBuilder.add(query,cField.occur());
 
+            Term term = new Term(name,o.toString());
+            context.addTerm(term);
 
             return true;
         }

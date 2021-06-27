@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.Terms;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
@@ -40,6 +42,8 @@ public class CSearchPipeContext {
 
     private final List<SortField> sortFields = new ArrayList<>();
 
+    private final List<Term> terms = new ArrayList<>();
+
     @Setter
     private Analyzer analyzer;
 
@@ -61,6 +65,10 @@ public class CSearchPipeContext {
 
     public void addSortField(SortField sortField){
         this.sortFields.add(sortField);
+    }
+
+    public void addTerm(Term term){
+        this.terms.add(term);
     }
 
 

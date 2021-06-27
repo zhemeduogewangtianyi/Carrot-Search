@@ -24,7 +24,7 @@ public class CreateDoc {
 
     public static void main(String[] args) {
 
-        for(int i = 0 ; i < 100 ; i++){
+        for(int i = 0 ; i < 3 ; i++){
             User user = new User();
             user.setId(Long.parseLong(i + ""));
             user.setName("周童童");

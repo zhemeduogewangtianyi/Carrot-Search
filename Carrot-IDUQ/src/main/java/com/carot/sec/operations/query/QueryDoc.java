@@ -27,17 +27,17 @@ public class QueryDoc {
     public static void main(String[] args) {
 
         User user = new User();
-        user.setId(Long.parseLong("2"));
-        user.setName("童童");
-        user.setAge(2);
-        user.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
-        user.setUrl("http://www.baidu.com");
-        user.setBirthDay(new Date(1624798744527L));
+//        user.setId(Long.parseLong("2"));
+//        user.setName("童童");
+//        user.setAge(2);
+//        user.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
+//        user.setUrl("http://www.baidu.com");
+//        user.setBirthDay(new Date(1624798744527L));
         new QueryDoc().queryDoc(user,1,10);
 
     }
 
-    private boolean queryDoc(Object obj,int current,int pageSize) {
+    public boolean queryDoc(Object obj,int current,int pageSize) {
 
         CSearchConfig searchConfig = CSearchConfig.getConfig(obj);
 
@@ -65,7 +65,7 @@ public class QueryDoc {
                 context.setFieldValue(f.get(obj));
                 context.setCFieldQuery(f.getAnnotation(CFieldQuery.class));
                 context.setField(f);
-                context.setClassType(aClass);
+                context.setClassType(f.getType());
                 context.setAnalyzer(searchConfig.getAnalyzer());
 
                 for(Handle handle : C_FIELD_HANDLES){
@@ -118,7 +118,6 @@ public class QueryDoc {
             }else{
                 docs = indexSearcher.searchAfter(before, query, pageSize , sort , false);
             }
-
 
             ScoreDoc[] scoreDocs = docs.scoreDocs;
             System.out.println("所有的数据总数为："+docs.totalHits);

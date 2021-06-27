@@ -41,6 +41,8 @@ public class StringFieldQueryHandle implements Handle<CSearchPipeContext, Boolea
             TermQuery query = new TermQuery(term);
             queryBuilder.add(query,cField.occur());
 
+            context.addTerm(term);
+
             return true;
         }
         return false;

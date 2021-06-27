@@ -5,6 +5,7 @@ import com.carot.sec.context.CSearchPipeContext;
 import com.carot.sec.enums.CFieldTypeEnum;
 import com.carot.sec.interfaces.Handle;
 import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
@@ -37,6 +38,10 @@ public class IntPointQueryHandle implements Handle<CSearchPipeContext, Boolean> 
             BooleanQuery.Builder queryBuilder = context.getQueryBuilder();
             Query query = IntPoint.newExactQuery(name, Integer.parseInt(o.toString()));
             queryBuilder.add(query, cField.occur());
+
+            Term term = new Term(name,o.toString());
+            context.addTerm(term);
+
             return true;
         }
         return false;

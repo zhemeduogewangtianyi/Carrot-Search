@@ -31,9 +31,9 @@ public class DeleteDoc {
         User obj = new User();
         obj.setId(Long.parseLong("2"));
         obj.setName("沙雕");
-        obj.setAge(2);
-        obj.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
-        obj.setUrl("http://www.baidu.com");
+//        obj.setAge(2);
+//        obj.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
+//        obj.setUrl("http://www.baidu.com");
 //        obj.setBirthDay(new Date());
 
         new DeleteDoc().deleteDoc(obj);

@@ -39,8 +39,8 @@ public class UpdateDoc {
         targetObject.setId(Long.parseLong("2"));
         targetObject.setName("沙雕");
         targetObject.setAge(2);
-        targetObject.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
-        targetObject.setUrl("http://www.baidu.com");
+        targetObject.setDesc("沙雕 是一个好学生，太好了，真的是太好了！￥%……");
+        targetObject.setUrl("http://www.shadiao.com");
         targetObject.setBirthDay(new Date());
 
         new UpdateDoc().updateDoc(sourceObject,targetObject);

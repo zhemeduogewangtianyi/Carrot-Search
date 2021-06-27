@@ -7,8 +7,12 @@ import lombok.Setter;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 public class CSearchPipeContext {
@@ -34,6 +38,8 @@ public class CSearchPipeContext {
 
     private final BooleanQuery.Builder queryBuilder;
 
+    private final List<SortField> sortFields = new ArrayList<>();
+
     @Setter
     private Analyzer analyzer;
 
@@ -52,4 +58,11 @@ public class CSearchPipeContext {
         field.setAccessible(true);
         this.field = field;
     }
+
+    public void addSortField(SortField sortField){
+        this.sortFields.add(sortField);
+    }
+
+
+
 }

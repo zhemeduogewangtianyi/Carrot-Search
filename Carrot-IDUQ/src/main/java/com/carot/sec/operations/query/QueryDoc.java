@@ -1,27 +1,22 @@
 package com.carot.sec.operations.query;
 
-import com.carot.sec.annotation.CFieldAdd;
 import com.carot.sec.annotation.CFieldQuery;
-import com.carot.sec.context.CSearchContext;
 import com.carot.sec.context.CSearchPipeContext;
 import com.carot.sec.entity.User;
-import com.carot.sec.enums.CFieldTypeEnum;
 import com.carot.sec.handle.HandleInstance;
 import com.carot.sec.interfaces.Handle;
 import com.carrot.sec.config.CSearchConfig;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.lucene.document.*;
-import org.apache.lucene.index.*;
-import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.BytesRef;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 public class QueryDoc {
@@ -60,8 +55,7 @@ public class QueryDoc {
 
             BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
-//            Query query1 = IntPoint.newExactQuery("age", 17);
-//            builder.add(query1, BooleanClause.Occur.MUST);
+            List<SortField> sortFields = new ArrayList<>();
 
             for(Field f : declaredFields){
                 f.setAccessible(true);
@@ -78,7 +72,9 @@ public class QueryDoc {
                         continue;
                     }
                     Boolean res = (Boolean)handle.handle(context);
-                    System.out.println(res);
+                    if(res){
+                        sortFields.addAll(context.getSortFields());
+                    }
                 }
 
             }
@@ -93,8 +89,7 @@ public class QueryDoc {
             ScoreDoc before = null;
             if(current != 1){
 
-                SortField sortField = new SortField("id", SortField.Type.LONG,false);
-                Sort sort = new Sort(sortField);
+                Sort sort = new Sort(sortFields.toArray(new SortField[]{}));
 
                 TopDocs docsBefore = indexSearcher.search(query, (current-1)*pageSize , sort , true);
                 ScoreDoc[] scoreDocs = docsBefore.scoreDocs;
@@ -103,8 +98,7 @@ public class QueryDoc {
                 }
             }
 
-            SortField sortField = new SortField("id", SortField.Type.LONG,false);
-            Sort sort = new Sort(sortField);
+            Sort sort = new Sort(sortFields.toArray(new SortField[]{}));
             TopDocs docs = indexSearcher.searchAfter(before, query, pageSize , sort , false);
 
             ScoreDoc[] scoreDocs = docs.scoreDocs;

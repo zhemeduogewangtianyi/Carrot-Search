@@ -12,6 +12,7 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.SortField;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
@@ -38,10 +39,11 @@ public class TextFieldQueryHandle implements Handle<CSearchPipeContext, Boolean>
                 o = new SimpleDateFormat(cField.dateFormat()).format(((Date)o));
             }
 
-            BooleanQuery.Builder queryBuilder = context.getQueryBuilder();
+            if(cField.sort()){
+                context.addSortField(new SortField(name,cField.enums().getType()));
+            }
 
-//            Term term = new Term(name,o.toString());
-//            FuzzyQuery query = new FuzzyQuery(term);
+            BooleanQuery.Builder queryBuilder = context.getQueryBuilder();
 
             QueryParser queryParser = new QueryParser(name, context.getAnalyzer());
             Query query = null;

@@ -1,15 +1,13 @@
 package com.carot.sec.handle.query;
 
-import com.carot.sec.annotation.CFieldAdd;
 import com.carot.sec.annotation.CFieldQuery;
 import com.carot.sec.context.CSearchPipeContext;
 import com.carot.sec.enums.CFieldTypeEnum;
 import com.carot.sec.interfaces.Handle;
 import org.apache.lucene.document.IntPoint;
-import org.apache.lucene.index.IndexableField;
-import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.SortField;
 
 import java.lang.reflect.Field;
 
@@ -31,6 +29,10 @@ public class IntPointQueryHandle implements Handle<CSearchPipeContext, Boolean> 
 
             if(cField.isDate()){
                 throw new RuntimeException("int not case Date !");
+            }
+
+            if(cField.sort()){
+                context.addSortField(new SortField(name,cField.enums().getType()));
             }
 
             BooleanQuery.Builder queryBuilder = context.getQueryBuilder();

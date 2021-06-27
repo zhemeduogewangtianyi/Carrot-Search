@@ -9,6 +9,7 @@ import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.SortField;
 
 import java.lang.reflect.Field;
 import java.util.Date;
@@ -31,6 +32,10 @@ public class LongPointQueryHandle implements Handle<CSearchPipeContext,Boolean> 
 
             if(cField.isDate()){
                 o = ((Date)o).getTime();
+            }
+
+            if(cField.sort()){
+                context.addSortField(new SortField(name,cField.enums().getType()));
             }
 
             BooleanQuery.Builder queryBuilder = context.getQueryBuilder();

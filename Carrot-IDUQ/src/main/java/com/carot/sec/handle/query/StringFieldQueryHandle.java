@@ -9,6 +9,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 
 import java.lang.reflect.Field;
@@ -33,6 +34,10 @@ public class StringFieldQueryHandle implements Handle<CSearchPipeContext, Boolea
 
             if(cField.isDate()){
                 o = new SimpleDateFormat(cField.dateFormat()).format(((Date)o));
+            }
+
+            if(cField.sort()){
+                context.addSortField(new SortField(name,cField.enums().getType()));
             }
 
             BooleanQuery.Builder queryBuilder = context.getQueryBuilder();

@@ -21,18 +21,17 @@ public class IntPointQueryHandle implements Handle<CSearchPipeContext, Boolean> 
 
         Object o = context.getFieldValue();
 
-        if(o != null){
+        Field field = context.getField();
+        String name = field.getName();
+        CFieldQuery cField = context.getCFieldQuery();
+        if(cField.sort()){
+            context.addSortField(new SortField(name,cField.enums().getType()));
+        }
 
-            Field field = context.getField();
-            String name = field.getName();
-            CFieldQuery cField = context.getCFieldQuery();
+        if(o != null){
 
             if(cField.isDate()){
                 throw new RuntimeException("int not case Date !");
-            }
-
-            if(cField.sort()){
-                context.addSortField(new SortField(name,cField.enums().getType()));
             }
 
             BooleanQuery.Builder queryBuilder = context.getQueryBuilder();

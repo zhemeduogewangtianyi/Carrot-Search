@@ -28,19 +28,18 @@ public class TextFieldQueryHandle implements Handle<CSearchPipeContext, Boolean>
 
         Object o = context.getFieldValue();
 
+        Field field = context.getField();
+
+        String name = field.getName();
+        CFieldQuery cField = context.getCFieldQuery();
+        if(cField.sort()){
+            context.addSortField(new SortField(name,cField.enums().getType()));
+        }
+
         if( o != null){
-
-            Field field = context.getField();
-
-            String name = field.getName();
-            CFieldQuery cField = context.getCFieldQuery();
 
             if(cField.isDate()){
                 o = new SimpleDateFormat(cField.dateFormat()).format(((Date)o));
-            }
-
-            if(cField.sort()){
-                context.addSortField(new SortField(name,cField.enums().getType()));
             }
 
             BooleanQuery.Builder queryBuilder = context.getQueryBuilder();

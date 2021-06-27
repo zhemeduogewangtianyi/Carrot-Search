@@ -17,6 +17,7 @@ import org.apache.lucene.store.FSDirectory;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class QueryDoc {
@@ -31,7 +32,7 @@ public class QueryDoc {
         user.setAge(2);
         user.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
         user.setUrl("http://www.baidu.com");
-//        user.setBirthDay(new Date());
+        user.setBirthDay(new Date(1624798744527L));
         new QueryDoc().queryDoc(user,1,10);
 
     }
@@ -72,9 +73,8 @@ public class QueryDoc {
                         continue;
                     }
                     Boolean res = (Boolean)handle.handle(context);
-                    if(res){
-                        sortFields.addAll(context.getSortFields());
-                    }
+                    sortFields.addAll(context.getSortFields());
+
                 }
 
             }
@@ -89,17 +89,36 @@ public class QueryDoc {
             ScoreDoc before = null;
             if(current != 1){
 
-                Sort sort = new Sort(sortFields.toArray(new SortField[]{}));
+                Sort sort = null;
+                if(!sortFields.isEmpty()){
+                    sort = new Sort(sortFields.toArray(new SortField[]{}));
+                }
 
-                TopDocs docsBefore = indexSearcher.search(query, (current-1)*pageSize , sort , true);
+                TopDocs docsBefore;
+                if(sort == null){
+                    docsBefore = indexSearcher.search(query, (current-1)*pageSize);
+                }else{
+                    docsBefore = indexSearcher.search(query, (current-1)*pageSize , sort , true);
+                }
+
                 ScoreDoc[] scoreDocs = docsBefore.scoreDocs;
                 if(scoreDocs.length > 0){
                     before = scoreDocs[scoreDocs.length - 1];
                 }
             }
 
-            Sort sort = new Sort(sortFields.toArray(new SortField[]{}));
-            TopDocs docs = indexSearcher.searchAfter(before, query, pageSize , sort , false);
+            Sort sort = null;
+            if(!sortFields.isEmpty()){
+                sort = new Sort(sortFields.toArray(new SortField[]{}));
+            }
+
+            TopDocs docs;
+            if(sort == null){
+                docs = indexSearcher.searchAfter(before, query, pageSize);
+            }else{
+                docs = indexSearcher.searchAfter(before, query, pageSize , sort , false);
+            }
+
 
             ScoreDoc[] scoreDocs = docs.scoreDocs;
             System.out.println("所有的数据总数为："+docs.totalHits);

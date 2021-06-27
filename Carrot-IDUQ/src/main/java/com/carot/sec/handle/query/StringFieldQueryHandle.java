@@ -26,18 +26,17 @@ public class StringFieldQueryHandle implements Handle<CSearchPipeContext, Boolea
 
         Object o = context.getFieldValue();
 
-        if( o != null){
+        Field field = context.getField();
+        String name = field.getName();
+        CFieldQuery cField = context.getCFieldQuery();
+        if(cField.sort()){
+            context.addSortField(new SortField(name,cField.enums().getType()));
+        }
 
-            Field field = context.getField();
-            String name = field.getName();
-            CFieldQuery cField = context.getCFieldQuery();
+        if( o != null){
 
             if(cField.isDate()){
                 o = new SimpleDateFormat(cField.dateFormat()).format(((Date)o));
-            }
-
-            if(cField.sort()){
-                context.addSortField(new SortField(name,cField.enums().getType()));
             }
 
             BooleanQuery.Builder queryBuilder = context.getQueryBuilder();

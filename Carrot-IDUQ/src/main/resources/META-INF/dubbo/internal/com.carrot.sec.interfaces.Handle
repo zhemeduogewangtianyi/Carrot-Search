@@ -1,0 +1,9 @@
+add_int=com.carrot.sec.handle.add.IntPointAddHandle
+add_long=com.carrot.sec.handle.add.LongPointAddHandle
+add_string=com.carrot.sec.handle.add.StringFieldAddHandle
+add_text=com.carrot.sec.handle.add.TextFieldAddHandle
+add_store=com.carrot.sec.handle.add.StoreFieldAddHandle
+query_int=com.carrot.sec.handle.query.IntPointQueryHandle
+query_long=com.carrot.sec.handle.query.LongPointQueryHandle
+query_string=com.carrot.sec.handle.query.StringFieldQueryHandle
+query_text=com.carrot.sec.handle.query.TextFieldQueryHandle

@@ -26,8 +26,8 @@ public class CSearchConfig {
 
     public static CSearchConfig getConfig(Object obj){
         CSearchConfig cSearchConfig = new CSearchConfig();
-//        cSearchConfig.setPath("/Users/wty/Downloads/temp");
-        cSearchConfig.setPath("d://temp" + File.separator + obj.getClass().getSimpleName().toLowerCase());
+        cSearchConfig.setPath("/Users/wty/Downloads/temp" + File.separator + obj.getClass().getSimpleName().toLowerCase());
+//        cSearchConfig.setPath("d://temp" + File.separator + obj.getClass().getSimpleName().toLowerCase());
         cSearchConfig.setAnalyzer(new StandardAnalyzer());
         return cSearchConfig;
     }

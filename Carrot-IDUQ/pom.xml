@@ -16,7 +16,7 @@
 
         <dependency>
             <groupId>org.carrot</groupId>
-            <artifactId>Carrot-Config</artifactId>
+            <artifactId>Carrot-Common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 

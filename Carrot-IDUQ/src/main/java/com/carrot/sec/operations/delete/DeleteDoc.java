@@ -1,24 +1,26 @@
 package com.carrot.sec.operations.delete;
 
-import com.carrot.sec.annotation.CFieldQuery;
+import com.carrot.sec.config.CSearchConfig;
 import com.carrot.sec.context.CSearchPipeContext;
-import com.carrot.sec.entity.User;
+import com.carrot.sec.context.JsonSearchContext;
+import com.carrot.sec.context.field.CSearchPipeFieldContext;
+import com.carrot.sec.context.field.JsonFieldContext;
+import com.carrot.sec.context.query.CSearchPipeQueryContext;
+import com.carrot.sec.context.query.JsonQueryFieldContext;
+import com.carrot.sec.enums.CFieldPipeTypeEnum;
+import com.carrot.sec.enums.OccurEnum;
+import com.carrot.sec.enums.OperationTypeEnum;
 import com.carrot.sec.handle.HandleInstance;
 import com.carrot.sec.interfaces.Handle;
-import com.carrot.sec.config.CSearchConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,23 +28,9 @@ public class DeleteDoc {
 
     private static final List<Handle> C_FIELD_HANDLES = HandleInstance.getcFieldHandles();
 
-    public static void main(String[] args) {
+    public boolean deleteDoc(JsonSearchContext jsc) {
 
-        User obj = new User();
-        obj.setId(Long.parseLong("2"));
-        obj.setName("沙雕");
-//        obj.setAge(2);
-//        obj.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
-//        obj.setUrl("http://www.baidu.com");
-//        obj.setBirthDay(new Date());
-
-        new DeleteDoc().deleteDoc(obj);
-
-    }
-
-    private boolean deleteDoc(Object obj) {
-
-        CSearchConfig searchConfig = CSearchConfig.getConfig(obj);
+        CSearchConfig searchConfig = CSearchConfig.getConfig(jsc.getClassName());
 
         Directory directory = null;
         DirectoryReader iReader = null;
@@ -57,31 +45,59 @@ public class DeleteDoc {
 
             indexWriter = new IndexWriter(directory,config);
 
-            Class<?> aClass = obj.getClass();
-            Field[] declaredFields = aClass.getDeclaredFields();
-
             BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
             List<SortField> sortFields = new ArrayList<>();
 
-            for(Field f : declaredFields){
-                f.setAccessible(true);
-                CSearchPipeContext context = new CSearchPipeContext(builder);
-                context.setFieldName(f.getName());
-                context.setFieldValue(f.get(obj));
-                context.setCFieldQuery(f.getAnnotation(CFieldQuery.class));
-                context.setField(f);
-                context.setClassType(f.getType());
-                context.setAnalyzer(searchConfig.getAnalyzer());
+            CSearchPipeContext context = new CSearchPipeContext(OperationTypeEnum.QUERY);
+
+            context.setAnalyzer(searchConfig.getAnalyzer());
+
+            List<JsonFieldContext> fieldContexts = jsc.getFieldContexts();
+
+            for(JsonFieldContext jfc : fieldContexts){
+
+                CSearchPipeFieldContext fieldContext = new CSearchPipeFieldContext();
+
+                String fieldName = jfc.getFieldName();
+                Object fieldValue = jfc.getFieldValue();
+
+                fieldContext.setFieldName(fieldName);
+                fieldContext.setFieldValue(fieldValue);
+
+                JsonQueryFieldContext queryFieldContext = jfc.getJsonQueryFieldContext();
+                String queryType = queryFieldContext.getType();
+                boolean queryIsSort = queryFieldContext.isSort();
+                String occur = queryFieldContext.getOccur();
+
+                CSearchPipeQueryContext queryContext = new CSearchPipeQueryContext(builder);
+
+                queryContext.setEnums(CFieldPipeTypeEnum.getEnumByFlag(queryType));
+                queryContext.setSort(queryIsSort);
+                if(occur.equals(OccurEnum.Occur.MUST.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.MUST);
+                }else if(occur.equals(OccurEnum.Occur.FILTER.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.FILTER);
+                }else if(occur.equals(OccurEnum.Occur.SHOULD.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.SHOULD);
+                }else if(occur.equals(OccurEnum.Occur.MUST_NOT.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.MUST_NOT);
+                }else{
+                    throw new RuntimeException("not found occur !");
+                }
+
+                fieldContext.setQueryContext(queryContext);
 
                 for(Handle handle : C_FIELD_HANDLES){
                     if(!handle.support(context)){
                         continue;
                     }
                     Boolean res = (Boolean)handle.handle(context);
-                    sortFields.addAll(context.getSortFields());
+                    sortFields.addAll(fieldContext.getSortFields());
 
                 }
+
+                context.addFieldContext(fieldContext);
 
             }
 

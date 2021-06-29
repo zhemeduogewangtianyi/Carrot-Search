@@ -1,38 +1,34 @@
 package com.carrot.sec.handle.add;
 
-import com.carrot.sec.annotation.CFieldAdd;
-import com.carrot.sec.context.CSearchPipeContext;
-import com.carrot.sec.enums.CFieldTypeEnum;
+import com.carrot.sec.context.add.CSearchPipeAddContext;
+import com.carrot.sec.context.field.CSearchPipeFieldContext;
+import com.carrot.sec.enums.CFieldPipeTypeEnum;
 import com.carrot.sec.interfaces.Handle;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexableField;
 
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
  * @author wty
  */
-public class StringFieldAddHandle implements Handle<CSearchPipeContext, IndexableField> {
+public class StringFieldAddHandle implements Handle<CSearchPipeFieldContext, IndexableField> {
 
     @Override
-    public IndexableField handle(CSearchPipeContext context) {
+    public IndexableField handle(CSearchPipeFieldContext context) {
 
-        Object o = context.getFieldValue();
+        CSearchPipeAddContext addContext = context.getAddContext();
 
-        if( o != null){
+        Object fieldValue = context.getFieldValue();
 
-            Field field = context.getField();
-            String name = field.getName();
-            CFieldAdd cField = context.getCFieldAdd();
-            CFieldTypeEnum enums = cField.enums();
+        if( fieldValue != null){
 
-            if(cField.isDate()){
-                o = new SimpleDateFormat(cField.dateFormat()).format(((Date)o));
-            }
+            String name = context.getFieldName();
+            CFieldPipeTypeEnum enums = addContext.getEnums();
 
-            Class<?>[] parameter = {String.class,String.class, org.apache.lucene.document.Field.Store.class};
-            Object[] args = {name,o.toString(),cField.store() ? org.apache.lucene.document.Field.Store.YES : org.apache.lucene.document.Field.Store.YES};
+            Class<?>[] parameter = {String.class,String.class, Field.Store.class};
+            Object[] args = {name,fieldValue.toString(),addContext.isStore() ? Field.Store.YES : Field.Store.YES};
 
             return enums.getClsField(parameter,args);
         }
@@ -40,12 +36,15 @@ public class StringFieldAddHandle implements Handle<CSearchPipeContext, Indexabl
     }
 
     @Override
-    public boolean support(CSearchPipeContext context) {
-        CFieldAdd cField = context.getCFieldAdd();
-        if(cField == null){
+    public boolean support(CSearchPipeFieldContext context) {
+        if(context == null){
             return false;
         }
-        return cField.enums().equals(CFieldTypeEnum.STRING_FIELD);
+        CSearchPipeAddContext addContext = context.getAddContext();
+        if(addContext == null){
+            return false;
+        }
+        return addContext.getEnums().equals(CFieldPipeTypeEnum.STRING_FIELD);
     }
 
 }

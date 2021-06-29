@@ -1,11 +1,16 @@
 package com.carrot.sec.operations.create;
 
-import com.carrot.sec.annotation.CFieldAdd;
+import com.carrot.sec.config.CSearchConfig;
 import com.carrot.sec.context.CSearchPipeContext;
-import com.carrot.sec.entity.User;
+import com.carrot.sec.context.JsonSearchContext;
+import com.carrot.sec.context.add.CSearchPipeAddContext;
+import com.carrot.sec.context.add.JsonAddFieldContext;
+import com.carrot.sec.context.field.CSearchPipeFieldContext;
+import com.carrot.sec.context.field.JsonFieldContext;
+import com.carrot.sec.enums.CFieldPipeTypeEnum;
+import com.carrot.sec.enums.OperationTypeEnum;
 import com.carrot.sec.handle.HandleInstance;
 import com.carrot.sec.interfaces.Handle;
-import com.carrot.sec.config.CSearchConfig;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -14,35 +19,22 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.Date;
 import java.util.List;
 
 public class CreateDoc {
 
     private static final List<Handle> C_FIELD_HANDLES = HandleInstance.getcFieldHandles();
 
-    public static void main(String[] args) {
+    public boolean createDoc(JsonSearchContext jsc) throws Exception{
 
-        for(int i = 0 ; i < 3 ; i++){
-            User user = new User();
-            user.setId(Long.parseLong(i + ""));
-            user.setName("周童童");
-            user.setAge(i);
-            user.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
-            user.setUrl("http://www.baidu.com");
-            user.setBirthDay(new Date());
-            new CreateDoc().createDoc(user);
-        }
-
-    }
-
-    public boolean createDoc(Object obj) {
-
-        CSearchConfig searchConfig = CSearchConfig.getConfig(obj);
+        CSearchConfig searchConfig = CSearchConfig.getConfig(jsc.getClassName());
 
         Directory directory = null;
         IndexWriter iWriter = null;
+
+        if(jsc.getOperationType() == null || OperationTypeEnum.getByValue(jsc.getOperationType()) == null){
+            return false;
+        }
 
         try {
             directory = FSDirectory.open(searchConfig.getPath());
@@ -53,46 +45,55 @@ public class CreateDoc {
 
             Document doc = new Document();
 
-            Class<?> aClass = obj.getClass();
-            Field[] declaredFields = aClass.getDeclaredFields();
-            for (Field objField : declaredFields) {
+            CSearchPipeContext context = new CSearchPipeContext(OperationTypeEnum.ADD);
 
-                CFieldAdd annotation = objField.getAnnotation(CFieldAdd.class);
-                if (annotation != null) {
+            context.setAnalyzer(config.getAnalyzer());
 
-                    Class<?> type = objField.getType();
-                    String name = objField.getName();
-                    objField.setAccessible(true);
-                    Object o = objField.get(obj);
+            List<JsonFieldContext> fieldContexts = jsc.getFieldContexts();
 
-                    C_FIELD_HANDLES.forEach(extendsion -> {
+            for(JsonFieldContext jfc : fieldContexts){
 
-                        CSearchPipeContext context = new CSearchPipeContext(doc);
-                        context.setField(objField);
-                        context.setCFieldAdd(annotation);
-                        context.setFieldValue(o);
-                        context.setFieldName(name);
-                        context.setClassType(type);
 
-                        if (extendsion.support(context)) {
-                            Object handle = extendsion.handle(context);
-                            if (handle != null) {
-                                IndexableField res = (IndexableField) handle;
-                                doc.add(res);
+                CSearchPipeFieldContext fieldContext = new CSearchPipeFieldContext();
 
-                            }
+                String fieldName = jfc.getFieldName();
+                Object fieldValue = jfc.getFieldValue();
+
+                fieldContext.setFieldName(fieldName);
+                fieldContext.setFieldValue(fieldValue);
+
+                JsonAddFieldContext addFieldContext = jfc.getJsonAddFieldContext();
+                String addType = addFieldContext.getType();
+                boolean addAnalyzer = addFieldContext.isAnalyzer();
+                boolean addStore = addFieldContext.isStore();
+
+                CSearchPipeAddContext addContext = new CSearchPipeAddContext(doc);
+
+                addContext.setEnums(CFieldPipeTypeEnum.getEnumByFlag(addType));
+                addContext.setAnalyzer(addAnalyzer);
+                addContext.setStore(addStore);
+
+                fieldContext.setAddContext(addContext);
+
+                context.addFieldContext(fieldContext);
+
+                for(Handle handle : C_FIELD_HANDLES){
+                    if (handle.support(fieldContext)) {
+                        Object res = handle.handle(fieldContext);
+                        if (res != null) {
+                            IndexableField idx = (IndexableField) res;
+                            doc.add(idx);
                         }
-
-                    });
+                    }
                 }
+
+
             }
 
             iWriter.addDocument(doc);
 
             iWriter.close();
 
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             if (iWriter != null) {
                 try {

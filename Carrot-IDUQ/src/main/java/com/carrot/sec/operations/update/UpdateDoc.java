@@ -1,54 +1,40 @@
 package com.carrot.sec.operations.update;
 
-import com.carrot.sec.annotation.CFieldAdd;
-import com.carrot.sec.annotation.CFieldQuery;
+import com.carrot.sec.config.CSearchConfig;
 import com.carrot.sec.context.CSearchPipeContext;
-import com.carrot.sec.entity.User;
+import com.carrot.sec.context.JsonSearchContext;
+import com.carrot.sec.context.add.CSearchPipeAddContext;
+import com.carrot.sec.context.add.JsonAddFieldContext;
+import com.carrot.sec.context.field.CSearchPipeFieldContext;
+import com.carrot.sec.context.field.JsonFieldContext;
+import com.carrot.sec.context.query.CSearchPipeQueryContext;
+import com.carrot.sec.context.query.JsonQueryFieldContext;
+import com.carrot.sec.enums.CFieldPipeTypeEnum;
+import com.carrot.sec.enums.OccurEnum;
+import com.carrot.sec.enums.OperationTypeEnum;
 import com.carrot.sec.handle.HandleInstance;
 import com.carrot.sec.interfaces.Handle;
-import com.carrot.sec.config.CSearchConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.*;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class UpdateDoc {
 
     private static final List<Handle> C_FIELD_HANDLES = HandleInstance.getcFieldHandles();
 
-    public static void main(String[] args) {
+    public boolean updateDoc(JsonSearchContext sourceJsc,JsonSearchContext targetJsc) {
 
-        User sourceObject = new User();
-        sourceObject.setId(Long.parseLong("2"));
-        sourceObject.setName("童童");
-        sourceObject.setAge(2);
-        sourceObject.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
-        sourceObject.setUrl("http://www.baidu.com");
-//        sourceObject.setBirthDay(new Date(1624798744527L));
-
-        User targetObject = new User();
-        targetObject.setId(Long.parseLong("2"));
-        targetObject.setName("沙雕");
-        targetObject.setAge(2);
-        targetObject.setDesc("沙雕 是一个好学生，太好了，真的是太好了！￥%……");
-        targetObject.setUrl("http://www.shadiao.com");
-        targetObject.setBirthDay(new Date());
-
-        new UpdateDoc().updateDoc(sourceObject,targetObject);
-
-    }
-
-    private boolean updateDoc(Object sourceObject,Object targetObject) {
-
-        CSearchConfig searchConfig = CSearchConfig.getConfig(sourceObject);
+        CSearchConfig searchConfig = CSearchConfig.getConfig(sourceJsc.getClassName());
 
         Directory directory = null;
         DirectoryReader iReader = null;
@@ -63,31 +49,59 @@ public class UpdateDoc {
 
             indexWriter = new IndexWriter(directory,config);
 
-            Class<?> aClass = sourceObject.getClass();
-            Field[] declaredFields = aClass.getDeclaredFields();
-
             BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
             List<SortField> sortFields = new ArrayList<>();
 
-            for(Field f : declaredFields){
-                f.setAccessible(true);
-                CSearchPipeContext context = new CSearchPipeContext(builder);
-                context.setFieldName(f.getName());
-                context.setFieldValue(f.get(sourceObject));
-                context.setCFieldQuery(f.getAnnotation(CFieldQuery.class));
-                context.setField(f);
-                context.setClassType(f.getType());
-                context.setAnalyzer(searchConfig.getAnalyzer());
+            CSearchPipeContext context = new CSearchPipeContext(OperationTypeEnum.QUERY);
+
+            context.setAnalyzer(searchConfig.getAnalyzer());
+
+            List<JsonFieldContext> fieldContexts = sourceJsc.getFieldContexts();
+
+            for(JsonFieldContext jfc : fieldContexts){
+
+                CSearchPipeFieldContext fieldContext = new CSearchPipeFieldContext();
+
+                String fieldName = jfc.getFieldName();
+                Object fieldValue = jfc.getFieldValue();
+
+                fieldContext.setFieldName(fieldName);
+                fieldContext.setFieldValue(fieldValue);
+
+                JsonQueryFieldContext queryFieldContext = jfc.getJsonQueryFieldContext();
+                String queryType = queryFieldContext.getType();
+                boolean queryIsSort = queryFieldContext.isSort();
+                String occur = queryFieldContext.getOccur();
+
+                CSearchPipeQueryContext queryContext = new CSearchPipeQueryContext(builder);
+
+                queryContext.setEnums(CFieldPipeTypeEnum.getEnumByFlag(queryType));
+                queryContext.setSort(queryIsSort);
+                if(occur.equals(OccurEnum.Occur.MUST.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.MUST);
+                }else if(occur.equals(OccurEnum.Occur.FILTER.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.FILTER);
+                }else if(occur.equals(OccurEnum.Occur.SHOULD.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.SHOULD);
+                }else if(occur.equals(OccurEnum.Occur.MUST_NOT.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.MUST_NOT);
+                }else{
+                    throw new RuntimeException("not found occur !");
+                }
+
+                fieldContext.setQueryContext(queryContext);
 
                 for(Handle handle : C_FIELD_HANDLES){
                     if(!handle.support(context)){
                         continue;
                     }
                     Boolean res = (Boolean)handle.handle(context);
-                    sortFields.addAll(context.getSortFields());
+                    sortFields.addAll(fieldContext.getSortFields());
 
                 }
+
+                context.addFieldContext(fieldContext);
 
             }
 
@@ -103,38 +117,50 @@ public class UpdateDoc {
 
             Document doc = new Document();
 
-            Class<?> taClass = targetObject.getClass();
-            Field[] tdeclaredFields = taClass.getDeclaredFields();
-            for (Field objField : tdeclaredFields) {
+            CSearchPipeContext targetContext = new CSearchPipeContext(OperationTypeEnum.ADD);
 
-                CFieldAdd annotation = objField.getAnnotation(CFieldAdd.class);
-                if (annotation != null) {
+            targetContext.setAnalyzer(config.getAnalyzer());
 
-                    Class<?> type = objField.getType();
-                    String name = objField.getName();
-                    objField.setAccessible(true);
-                    Object o = objField.get(targetObject);
+            List<JsonFieldContext> targetFieldContexts = targetJsc.getFieldContexts();
 
-                    C_FIELD_HANDLES.forEach(extendsion -> {
+            for(JsonFieldContext jfc : targetFieldContexts){
 
-                        CSearchPipeContext context = new CSearchPipeContext(doc);
-                        context.setField(objField);
-                        context.setCFieldAdd(annotation);
-                        context.setFieldValue(o);
-                        context.setFieldName(name);
-                        context.setClassType(type);
 
-                        if (extendsion.support(context)) {
-                            Object handle = extendsion.handle(context);
-                            if (handle != null) {
-                                IndexableField res = (IndexableField) handle;
-                                doc.add(res);
+                CSearchPipeFieldContext fieldContext = new CSearchPipeFieldContext();
 
-                            }
+                String fieldName = jfc.getFieldName();
+                Object fieldValue = jfc.getFieldValue();
+
+                fieldContext.setFieldName(fieldName);
+                fieldContext.setFieldValue(fieldValue);
+
+                JsonAddFieldContext addFieldContext = jfc.getJsonAddFieldContext();
+                String addType = addFieldContext.getType();
+                boolean addAnalyzer = addFieldContext.isAnalyzer();
+                boolean addStore = addFieldContext.isStore();
+
+                CSearchPipeAddContext addContext = new CSearchPipeAddContext(doc);
+
+                addContext.setEnums(CFieldPipeTypeEnum.getEnumByFlag(addType));
+                addContext.setAnalyzer(addAnalyzer);
+                addContext.setStore(addStore);
+
+                fieldContext.setAddContext(addContext);
+
+                targetContext.addFieldContext(fieldContext);
+
+                C_FIELD_HANDLES.forEach(extendsion -> {
+
+                    if (extendsion.support(targetContext)) {
+                        Object handle = extendsion.handle(targetContext);
+                        if (handle != null) {
+                            IndexableField res = (IndexableField) handle;
+                            doc.add(res);
+
                         }
+                    }
+                });
 
-                    });
-                }
             }
 
             long l1 = indexWriter.addDocument(doc);

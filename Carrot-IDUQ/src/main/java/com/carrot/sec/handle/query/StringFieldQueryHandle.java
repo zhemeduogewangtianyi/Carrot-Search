@@ -1,45 +1,40 @@
 package com.carrot.sec.handle.query;
 
-import com.carrot.sec.annotation.CFieldQuery;
-import com.carrot.sec.context.CSearchPipeContext;
-import com.carrot.sec.enums.CFieldTypeEnum;
+import com.carrot.sec.context.field.CSearchPipeFieldContext;
+import com.carrot.sec.context.query.CSearchPipeQueryContext;
+import com.carrot.sec.enums.CFieldPipeTypeEnum;
 import com.carrot.sec.interfaces.Handle;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
  * @author wty
  */
-public class StringFieldQueryHandle implements Handle<CSearchPipeContext, Boolean> {
+public class StringFieldQueryHandle implements Handle<CSearchPipeFieldContext, Boolean> {
 
     @Override
-    public Boolean handle(CSearchPipeContext context) {
+    public Boolean handle(CSearchPipeFieldContext context) {
 
-        Object o = context.getFieldValue();
+        CSearchPipeQueryContext queryContext = context.getQueryContext();
 
-        Field field = context.getField();
-        String name = field.getName();
-        CFieldQuery cField = context.getCFieldQuery();
-        if(cField.sort()){
-            context.addSortField(new SortField(name,cField.enums().getType()));
+        Object fieldValue = context.getFieldValue();
+
+        String name = context.getFieldName();
+        if(queryContext.isSort()){
+            context.addSortField(new SortField(name,queryContext.getEnums().getType()));
         }
 
-        if( o != null){
+        if( fieldValue != null){
 
-            if(cField.isDate()){
-                o = new SimpleDateFormat(cField.dateFormat()).format(((Date)o));
-            }
-
-            BooleanQuery.Builder queryBuilder = context.getQueryBuilder();
-            Term term = new Term(name,o.toString());
+            BooleanQuery.Builder queryBuilder = context.getQueryContext().getQueryBuilder();
+            Term term = new Term(name,fieldValue.toString());
             TermQuery query = new TermQuery(term);
-            queryBuilder.add(query,cField.occur());
+            queryBuilder.add(query,queryContext.getOccur());
 
             context.addTerm(term);
 
@@ -49,12 +44,15 @@ public class StringFieldQueryHandle implements Handle<CSearchPipeContext, Boolea
     }
 
     @Override
-    public boolean support(CSearchPipeContext context) {
-        CFieldQuery cField = context.getCFieldQuery();
-        if(cField == null){
+    public boolean support(CSearchPipeFieldContext context) {
+        if(context == null){
             return false;
         }
-        return cField.enums().equals(CFieldTypeEnum.STRING_FIELD);
+        CSearchPipeQueryContext queryContext = context.getQueryContext();
+        if(queryContext == null){
+            return false;
+        }
+        return queryContext.getEnums().equals(CFieldPipeTypeEnum.STRING_FIELD);
     }
 
 }

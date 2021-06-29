@@ -1,7 +1,7 @@
 package com.carrot.sec.annotation;
 
 
-import com.carrot.sec.enums.CFieldTypeEnum;
+import com.carrot.sec.enums.CFieldPipeTypeEnum;
 import java.lang.annotation.*;
 
 /**
@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Documented
 public @interface CFieldAdd {
 
-    CFieldTypeEnum enums();
+    CFieldPipeTypeEnum enums();
 
     boolean store() default true;
 

@@ -1,6 +1,6 @@
 package com.carrot.sec.annotation;
 
-import com.carrot.sec.enums.CFieldTypeEnum;
+import com.carrot.sec.enums.CFieldPipeTypeEnum;
 import org.apache.lucene.search.BooleanClause;
 
 import java.lang.annotation.*;
@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Documented
 public @interface CFieldQuery {
 
-    CFieldTypeEnum enums();
+    CFieldPipeTypeEnum enums();
 
     boolean sort() default false;
 

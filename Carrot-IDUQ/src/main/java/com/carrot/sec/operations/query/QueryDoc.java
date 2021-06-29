@@ -1,11 +1,17 @@
 package com.carrot.sec.operations.query;
 
-import com.carrot.sec.annotation.CFieldQuery;
+import com.carrot.sec.config.CSearchConfig;
 import com.carrot.sec.context.CSearchPipeContext;
-import com.carrot.sec.entity.User;
+import com.carrot.sec.context.JsonSearchContext;
+import com.carrot.sec.context.field.CSearchPipeFieldContext;
+import com.carrot.sec.context.field.JsonFieldContext;
+import com.carrot.sec.context.query.CSearchPipeQueryContext;
+import com.carrot.sec.context.query.JsonQueryFieldContext;
+import com.carrot.sec.enums.CFieldPipeTypeEnum;
+import com.carrot.sec.enums.OccurEnum;
+import com.carrot.sec.enums.OperationTypeEnum;
 import com.carrot.sec.handle.HandleInstance;
 import com.carrot.sec.interfaces.Handle;
-import com.carrot.sec.config.CSearchConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -15,30 +21,18 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class QueryDoc {
 
     private static final List<Handle> C_FIELD_HANDLES = HandleInstance.getcFieldHandles();
 
-    public static void main(String[] args) {
+    public List<Map<String,Object>> queryDoc(JsonSearchContext jsc) throws Exception {
 
-        User user = new User();
-//        user.setId(Long.parseLong("2"));
-//        user.setName("童童");
-//        user.setAge(2);
-//        user.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
-//        user.setUrl("http://www.baidu.com");
-//        user.setBirthDay(new Date(1624798744527L));
-        new QueryDoc().queryDoc(user,1,10);
-
-    }
-
-    public boolean queryDoc(Object obj,int current,int pageSize) {
-
-        CSearchConfig searchConfig = CSearchConfig.getConfig(obj);
+        CSearchConfig searchConfig = CSearchConfig.getConfig(jsc.getClassName());
 
         Directory directory = null;
         DirectoryReader iReader = null;
@@ -50,29 +44,59 @@ public class QueryDoc {
 
             IndexSearcher indexSearcher = new IndexSearcher(iReader);
 
-            Class<?> aClass = obj.getClass();
-            Field[] declaredFields = aClass.getDeclaredFields();
-
             BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
             List<SortField> sortFields = new ArrayList<>();
 
-            for(Field f : declaredFields){
-                f.setAccessible(true);
-                CSearchPipeContext context = new CSearchPipeContext(builder);
-                context.setFieldName(f.getName());
-                context.setFieldValue(f.get(obj));
-                context.setCFieldQuery(f.getAnnotation(CFieldQuery.class));
-                context.setField(f);
-                context.setClassType(f.getType());
-                context.setAnalyzer(searchConfig.getAnalyzer());
+            CSearchPipeContext context = new CSearchPipeContext(OperationTypeEnum.QUERY);
+
+            context.setAnalyzer(searchConfig.getAnalyzer());
+
+            List<JsonFieldContext> fieldContexts = jsc.getFieldContexts();
+
+            List<Map<String,Object>> result = new ArrayList<>();
+
+            for(JsonFieldContext jfc : fieldContexts){
+
+                CSearchPipeFieldContext fieldContext = new CSearchPipeFieldContext();
+
+                String fieldName = jfc.getFieldName();
+                Object fieldValue = jfc.getFieldValue();
+
+                fieldContext.setFieldName(fieldName);
+                fieldContext.setFieldValue(fieldValue);
+
+                JsonQueryFieldContext queryFieldContext = jfc.getJsonQueryFieldContext();
+                String queryType = queryFieldContext.getType();
+                boolean queryIsSort = queryFieldContext.isSort();
+                String occur = queryFieldContext.getOccur();
+
+                CSearchPipeQueryContext queryContext = new CSearchPipeQueryContext(builder);
+
+                queryContext.setEnums(CFieldPipeTypeEnum.getEnumByFlag(queryType));
+                queryContext.setSort(queryIsSort);
+                if(occur.equals(OccurEnum.Occur.MUST.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.MUST);
+                }else if(occur.equals(OccurEnum.Occur.FILTER.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.FILTER);
+                }else if(occur.equals(OccurEnum.Occur.SHOULD.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.SHOULD);
+                }else if(occur.equals(OccurEnum.Occur.MUST_NOT.toString())){
+                    queryContext.setOccur(BooleanClause.Occur.MUST_NOT);
+                }else{
+                    throw new RuntimeException("not found occur !");
+                }
+
+                fieldContext.setQueryContext(queryContext);
+
+                context.addFieldContext(fieldContext);
 
                 for(Handle handle : C_FIELD_HANDLES){
-                    if(!handle.support(context)){
+                    if(!handle.support(fieldContext)){
                         continue;
                     }
-                    Boolean res = (Boolean)handle.handle(context);
-                    sortFields.addAll(context.getSortFields());
+                    Boolean res = (Boolean)handle.handle(fieldContext);
+                    sortFields.addAll(fieldContext.getSortFields());
 
                 }
 
@@ -83,7 +107,9 @@ public class QueryDoc {
             if(StringUtils.isEmpty(query.toString())){
                 query = new MatchAllDocsQuery();
             }
-            
+
+            Integer current = jsc.getCurrent() == null ? 1 : jsc.getCurrent();
+            Integer pageSize = jsc.getPageSize() == null ? 10 : jsc.getPageSize();
 
             ScoreDoc before = null;
             if(current != 1){
@@ -121,16 +147,19 @@ public class QueryDoc {
             ScoreDoc[] scoreDocs = docs.scoreDocs;
             System.out.println("所有的数据总数为："+docs.totalHits);
             System.out.println("本页查询到的总数为："+scoreDocs.length);
+
             for(ScoreDoc hit : scoreDocs){
+                Map<String,Object> resMap = new HashMap<>();
                 Document hitDoc = indexSearcher.doc(hit.doc);
                 List<IndexableField> fields = hitDoc.getFields();
                 for(IndexableField idxField : fields){
                     System.out.println(idxField.name() + " : " + idxField.getCharSequenceValue());
+                    resMap.put(idxField.name(),idxField.getCharSequenceValue());
                 }
+                result.add(resMap);
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            return result;
         } finally {
             if(iReader != null){
                 try {
@@ -148,8 +177,6 @@ public class QueryDoc {
             }
         }
 
-
-        return true;
 
     }
 

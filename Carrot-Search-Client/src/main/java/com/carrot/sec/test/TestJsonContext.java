@@ -38,8 +38,18 @@ public class TestJsonContext {
 //            new TestJsonContext().toContextJson(stu);
 //        }
 
+//        Student stu = new Student();
+//        stu.setId(Long.parseLong(100 + ""));
+//        stu.setName("周童童");
+//        stu.setAge(10);
+//        stu.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
+//        stu.setUrl("http://www.baidu.com");
+////            stu.setBirthDay(new Date());
+//        new TestJsonContext().toContextJson(stu);
+
         Student stu = new Student();
 //        stu.setId(Long.parseLong(i + ""));
+        stu.setId(100L);
 //        stu.setName("周童童");
 //        stu.setAge();
 //        stu.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
@@ -120,7 +130,7 @@ public class TestJsonContext {
 
         CarrotSearchClient carrotSearchClient = null;
         try {
-            carrotSearchClient = new CarrotSearchClient("127.0.0.1", 9527, "carrot-test");
+            carrotSearchClient = new CarrotSearchClient("127.0.0.1", 9527);
         } catch (IOException e) {
             e.printStackTrace();
         }

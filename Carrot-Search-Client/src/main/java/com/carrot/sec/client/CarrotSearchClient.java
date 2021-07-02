@@ -3,37 +3,21 @@ package com.carrot.sec.client;
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ThreadLocalRandom;
 
-public class CarrotSearchClient extends Thread {
+public class CarrotSearchClient{
 
     private final Socket socket;
 
     private final String ip;
 
-    private final InputStream is;
-    private final OutputStream os;
-
-    private boolean off = true;
-
-    public CarrotSearchClient(String host, int port, String name) throws IOException {
-        super(name);
+    public CarrotSearchClient(String host, int port) throws IOException {
         this.ip = host;
         socket = new Socket(host,port);
-        is = socket.getInputStream();
-        os = socket.getOutputStream();
-
     }
 
     public String getIp(){
         return ip;
     }
-
-    public boolean shutdown(){
-        this.off = false;
-        return true;
-    }
-
 
     public String send(String msg){
 

@@ -56,15 +56,17 @@ public class TestJsonContext {
 //        stu.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
 //        stu.setUrl("http://www.baidu.com");
 //            stu.setBirthDay(new Date());
-        new TestJsonContext().toContextJson(stu);
+        new TestJsonContext().toContextJson(stu,0,2);
 
     }
 
-    private void toContextJson(Object obj) throws IllegalAccessException {
+    private void toContextJson(Object obj,Integer current,Integer pageSize) throws IllegalAccessException {
 
         Class<?> aClass = obj.getClass();
 
         JsonSearchContext context = new JsonSearchContext();
+        context.setCurrent(current == null ? 1 : current);
+        context.setPageSize(pageSize == null ? 10 : pageSize);
         context.setOperationType(NewOperationTypeEnum.QUERY.getValue());
 
         //doc name

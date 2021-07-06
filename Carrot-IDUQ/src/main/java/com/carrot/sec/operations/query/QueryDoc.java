@@ -113,6 +113,9 @@ public class QueryDoc {
             Integer current = jsc.getCurrent() == null ? 1 : jsc.getCurrent();
             Integer pageSize = jsc.getPageSize() == null ? 10 : jsc.getPageSize();
 
+            current = current < 1 ? 1 : current;
+            pageSize = pageSize < 1 ? 10 : pageSize;
+
             ScoreDoc before = null;
             if(current != 1){
 

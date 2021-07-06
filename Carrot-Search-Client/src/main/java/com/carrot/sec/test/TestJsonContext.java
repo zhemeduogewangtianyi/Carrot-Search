@@ -28,7 +28,7 @@ public class TestJsonContext {
 
     public static void main(String[] args) throws IllegalAccessException {
 
-//        for(int i = 0 ; i < 1 ; i ++){
+//        for(int i = 0 ; i < 100000 ; i ++){
 //            Student stu = new Student();
 //            stu.setId(Long.parseLong(i + ""));
 //            stu.setName("周童童");
@@ -36,7 +36,7 @@ public class TestJsonContext {
 //            stu.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
 //            stu.setUrl("http://www.baidu.com");
 ////            stu.setBirthDay(new Date());
-//            new TestJsonContext().toContextJson(stu);
+//            new TestJsonContext().toContextJson(stu,null,null);
 //        }
 
 //        Student stu = new Student();
@@ -50,13 +50,13 @@ public class TestJsonContext {
 
         Student stu = new Student();
 //        stu.setId(Long.parseLong(i + ""));
-//        stu.setId(100L);
+        stu.setId(3210L);
 //        stu.setName("周童童");
 //        stu.setAge();
 //        stu.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
 //        stu.setUrl("http://www.baidu.com");
 //            stu.setBirthDay(new Date());
-        new TestJsonContext().toContextJson(stu,0,2);
+        new TestJsonContext().toContextJson(stu,0,10);
 
     }
 

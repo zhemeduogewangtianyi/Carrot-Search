@@ -1,5 +1,7 @@
 package com.carrot.jdbc;
 
+import com.carrot.net.NetUnion;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -13,7 +15,8 @@ public class Statement implements java.sql.Statement {
     private final BufferedReader br;
     private final BufferedWriter bw;
 
-    public Statement(Socket socket) throws IOException {
+    public Statement(NetUnion netUnion) throws IOException {
+        Socket socket = netUnion.getSocket();
         this.br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
         this.bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
     }

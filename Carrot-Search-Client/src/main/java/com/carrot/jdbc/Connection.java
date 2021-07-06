@@ -1,9 +1,8 @@
 package com.carrot.jdbc;
 
-import org.apache.commons.lang3.StringUtils;
+import com.carrot.net.NetUnion;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
@@ -15,43 +14,17 @@ public class Connection implements java.sql.Connection {
 
     private final String url;
 
-    private final Socket socket;
+    private final NetUnion netUnion;
 
-    public Connection(String url,Properties info) throws IOException {
-        if(StringUtils.isEmpty(url)){
-            throw new IllegalArgumentException("url can't null !");
-        }
-        String allAddr = url.replaceAll(URL_PREFIX, "");
-        boolean contains = allAddr.contains("/");
-
-        String port = null;
-
-        if(contains){
-            String[] split = allAddr.split("/");
-            String address = split[0];
-
-            //TODO 端口和ip映射
-            if(!StringUtils.isEmpty(address)){
-                String[] split1 = address.split(":");
-
-            }
-            String document = split[1];
-        }else{
-            throw new IllegalArgumentException("document can't null !");
-        }
-
-        if(StringUtils.isEmpty(port)){
-            throw new IllegalArgumentException("port can't null !");
-        }
-
+    public Connection(String url) throws IOException {
         this.url = url;
-        socket = new Socket(url,Integer.parseInt(port));
+        netUnion = new NetUnion(url,URL_PREFIX);
     }
 
     @Override
     public Statement createStatement() throws SQLException {
         try {
-            return new Statement(socket);
+            return new Statement(netUnion);
         } catch (IOException e) {
             throw new SQLException(e);
         }
@@ -94,9 +67,9 @@ public class Connection implements java.sql.Connection {
 
     @Override
     public void close() throws SQLException {
-        if(socket != null){
+        if(netUnion.getSocket() != null){
             try {
-                socket.close();
+                netUnion.close();
             } catch (IOException e) {
                 throw new SQLException(e);
             }
@@ -105,7 +78,7 @@ public class Connection implements java.sql.Connection {
 
     @Override
     public boolean isClosed() throws SQLException {
-        return false;
+        return netUnion.getSocket().isClosed();
     }
 
     @Override

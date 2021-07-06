@@ -19,8 +19,7 @@ public class Driver implements java.sql.Driver {
     @Override
     public Connection connect(String url, Properties info) throws SQLException {
         try {
-            info.setProperty("port","9527");
-            return new com.carrot.jdbc.Connection(url,info);
+            return new com.carrot.jdbc.Connection(url);
         } catch (IOException e) {
             throw new SQLException(e);
         }

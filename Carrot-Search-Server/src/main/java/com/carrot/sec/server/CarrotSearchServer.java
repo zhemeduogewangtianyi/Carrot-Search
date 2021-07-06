@@ -57,15 +57,19 @@ public class CarrotSearchServer extends ServerSocket implements Runnable {
                             break;
                         case QUERY:
                             try{
-                                List<Map<String, Object>> result = new QueryDoc().queryDoc(jsonSearchContext);
+                                Map<String, Object> result = new QueryDoc().queryDoc(jsonSearchContext);
                                 res.put("code", 200);
                                 res.put("msg", "success");
-                                res.put("data", result);
+                                res.put("data", result.get("data"));
+                                res.put("pageSize", result.get("pageSize"));
+                                res.put("total", result.get("total"));
                             }catch(Exception e){
                                 e.printStackTrace();
                                 res.put("code", 500);
                                 res.put("msg", e.getMessage());
                                 res.put("data", null);
+                                res.put("pageSize",0);
+                                res.put("total", 0);
                             }
                             break;
                         case DELETE:

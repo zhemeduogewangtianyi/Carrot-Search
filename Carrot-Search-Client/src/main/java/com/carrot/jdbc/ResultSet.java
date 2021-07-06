@@ -1,18 +1,17 @@
 package com.carrot.jdbc;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
+import java.io.*;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.sql.Date;
 import java.sql.Statement;
 import java.sql.*;
-import java.util.Calendar;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -27,8 +26,18 @@ public class ResultSet implements java.sql.ResultSet {
     public ResultSet(BufferedReader br) throws IOException {
         this.br = br;
         String data = br.readLine();
-        JSONArray objects = JSONArray.parseArray(data);
-        item = new ConcurrentLinkedDeque(objects);
+        JSONObject resultObj = JSONObject.parseObject(data);
+        if(resultObj != null){
+            Integer code = (Integer)resultObj.get("code");
+            if(code == 200){
+                item = new ConcurrentLinkedDeque<>((Collection<Map<String, Object>>) resultObj.get("data"));
+            }else{
+                throw new IOException(resultObj.get("msg").toString());
+            }
+        }else{
+            item = new ConcurrentLinkedDeque<>();
+        }
+
     }
 
     @Override
@@ -142,82 +151,83 @@ public class ResultSet implements java.sql.ResultSet {
 
     @Override
     public String getString(String columnLabel) throws SQLException {
-        return null;
+        return (String) currentMap.get(columnLabel);
     }
 
     @Override
     public boolean getBoolean(String columnLabel) throws SQLException {
-        return false;
+        return (boolean) currentMap.get(columnLabel);
     }
 
     @Override
     public byte getByte(String columnLabel) throws SQLException {
-        return 0;
+        return (byte) currentMap.get(columnLabel);
     }
 
     @Override
     public short getShort(String columnLabel) throws SQLException {
-        return 0;
+        return (short) currentMap.get(columnLabel);
     }
 
     @Override
     public int getInt(String columnLabel) throws SQLException {
-        return 0;
+        return (int) currentMap.get(columnLabel);
     }
 
     @Override
     public long getLong(String columnLabel) throws SQLException {
-        return 0;
+        return (long) currentMap.get(columnLabel);
     }
 
     @Override
     public float getFloat(String columnLabel) throws SQLException {
-        return 0;
+        return (float) currentMap.get(columnLabel);
     }
 
     @Override
     public double getDouble(String columnLabel) throws SQLException {
-        return 0;
+        return (double) currentMap.get(columnLabel);
     }
 
     @Override
     public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
-        return null;
+        return new BigDecimal(currentMap.get(columnLabel).toString());
     }
 
     @Override
     public byte[] getBytes(String columnLabel) throws SQLException {
-        return new byte[0];
+        return currentMap.get(columnLabel).toString().getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
     public Date getDate(String columnLabel) throws SQLException {
-        return null;
+        return new Date(Long.parseLong(currentMap.get(columnLabel).toString()));
     }
 
     @Override
     public Time getTime(String columnLabel) throws SQLException {
-        return null;
+        return new Time(Long.parseLong(currentMap.get(columnLabel).toString()));
     }
 
     @Override
     public Timestamp getTimestamp(String columnLabel) throws SQLException {
-        return null;
+        return new Timestamp(Long.parseLong(currentMap.get(columnLabel).toString()));
+
     }
 
     @Override
     public InputStream getAsciiStream(String columnLabel) throws SQLException {
-        return null;
+        return new ByteArrayInputStream(currentMap.get(columnLabel).toString().getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
     public InputStream getUnicodeStream(String columnLabel) throws SQLException {
-        return null;
+        return new ByteArrayInputStream(currentMap.get(columnLabel).toString().getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
     public InputStream getBinaryStream(String columnLabel) throws SQLException {
-        return null;
+        return new ByteArrayInputStream(currentMap.get(columnLabel).toString().getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
@@ -247,7 +257,7 @@ public class ResultSet implements java.sql.ResultSet {
 
     @Override
     public Object getObject(String columnLabel) throws SQLException {
-        return null;
+        return currentMap.get(columnLabel);
     }
 
     @Override
@@ -992,7 +1002,7 @@ public class ResultSet implements java.sql.ResultSet {
 
     @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        return null;
+        return JSONObject.parseObject(JSON.toJSONString(currentMap),iface);
     }
 
     @Override

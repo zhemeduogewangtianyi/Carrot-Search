@@ -21,6 +21,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.sql.*;
 import java.util.List;
 
 public class TestJsonContext {
@@ -49,7 +50,7 @@ public class TestJsonContext {
 
         Student stu = new Student();
 //        stu.setId(Long.parseLong(i + ""));
-        stu.setId(100L);
+//        stu.setId(100L);
 //        stu.setName("周童童");
 //        stu.setAge();
 //        stu.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
@@ -73,7 +74,7 @@ public class TestJsonContext {
 
         Field[] declaredFields = aClass.getDeclaredFields();
 
-        for (Field declaredField : declaredFields){
+        for (Field declaredField : declaredFields) {
 
             declaredField.setAccessible(true);
 
@@ -128,16 +129,36 @@ public class TestJsonContext {
 
         }
 
-        CarrotSearchClient carrotSearchClient = null;
+//        CarrotSearchClient carrotSearchClient = null;
+//        try {
+//            carrotSearchClient = new CarrotSearchClient("127.0.0.1", 9527);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        String send = carrotSearchClient.send(JSON.toJSONString(context));
+//
+//        System.out.println(send);
+
         try {
-            carrotSearchClient = new CarrotSearchClient("127.0.0.1", 9527);
-        } catch (IOException e) {
+            Connection connection = DriverManager.getConnection("jdbc:carrot-search://127.0.0.1:9527/temp", "root", "root");
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(JSON.toJSONString(context));
+            while (resultSet.next()) {
+                Student unwrap = resultSet.unwrap(Student.class);
+                System.out.println(unwrap);
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        String send = carrotSearchClient.send(JSON.toJSONString(context));
 
-        System.out.println(send);
+    }
 
+    static {
+        try {
+            Class.forName("com.carrot.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
 }

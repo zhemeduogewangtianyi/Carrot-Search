@@ -30,7 +30,7 @@ public class QueryDoc {
 
     private static final List<Handle> C_FIELD_HANDLES = HandleInstance.getcFieldHandles();
 
-    public List<Map<String,Object>> queryDoc(JsonSearchContext jsc) throws Exception {
+    public Map<String,Object> queryDoc(JsonSearchContext jsc) throws Exception {
 
         CSearchConfig searchConfig = CSearchConfig.getConfig(jsc.getClassName());
 
@@ -53,6 +53,8 @@ public class QueryDoc {
             context.setAnalyzer(searchConfig.getAnalyzer());
 
             List<JsonFieldContext> fieldContexts = jsc.getFieldContexts();
+
+            Map<String,Object> resultWrapper = new HashMap<>(16);
 
             List<Map<String,Object>> result = new ArrayList<>();
 
@@ -145,21 +147,25 @@ public class QueryDoc {
             }
 
             ScoreDoc[] scoreDocs = docs.scoreDocs;
-            System.out.println("所有的数据总数为："+docs.totalHits);
-            System.out.println("本页查询到的总数为："+scoreDocs.length);
+//            System.out.println("所有的数据总数为："+docs.totalHits);
+//            System.out.println("本页查询到的总数为："+scoreDocs.length);
 
             for(ScoreDoc hit : scoreDocs){
                 Map<String,Object> resMap = new HashMap<>();
                 Document hitDoc = indexSearcher.doc(hit.doc);
                 List<IndexableField> fields = hitDoc.getFields();
                 for(IndexableField idxField : fields){
-                    System.out.println(idxField.name() + " : " + idxField.getCharSequenceValue());
+//                    System.out.println(idxField.name() + " : " + idxField.getCharSequenceValue());
                     resMap.put(idxField.name(),idxField.getCharSequenceValue());
                 }
                 result.add(resMap);
             }
 
-            return result;
+            resultWrapper.put("data",result);
+            resultWrapper.put("pageSize",scoreDocs.length);
+            resultWrapper.put("total",docs.totalHits);
+
+            return resultWrapper;
         } finally {
             if(iReader != null){
                 try {

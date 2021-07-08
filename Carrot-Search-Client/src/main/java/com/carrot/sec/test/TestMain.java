@@ -26,6 +26,7 @@ public class TestMain {
 ////            stu.setBirthDay(new Date());
 //        new TestJsonContext().toContextJson(stu);
 
+        long start = System.currentTimeMillis();
         Student stu = new Student();
 //        stu.setId(Long.parseLong(i + ""));
 //        stu.setId(3212L);
@@ -35,6 +36,8 @@ public class TestMain {
 //        stu.setUrl("http://www.baidu.com");
 //            stu.setBirthDay(new Date());
         new TestJsonContext().toContextJson(stu,0,1000000000);
+
+        System.out.println(System.currentTimeMillis() - start + " ms");
 
     }
 

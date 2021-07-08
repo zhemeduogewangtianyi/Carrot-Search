@@ -115,7 +115,7 @@ public class TestJsonContext {
             ResultSet resultSet = statement.executeQuery(JSON.toJSONString(context));
             while (resultSet.next()) {
                 Student unwrap = resultSet.unwrap(Student.class);
-                System.out.println(unwrap);
+//                System.out.println(unwrap);
             }
             resultSet.close();
 

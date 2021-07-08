@@ -16,4 +16,6 @@ public @interface CSearchQuery {
 
     OccurEnum.Occur occur() default OccurEnum.Occur.MUST;
 
+    boolean updateFlag() default false;
+
 }

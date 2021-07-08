@@ -169,6 +169,9 @@ public class QueryDoc {
             resultWrapper.put("total",docs.totalHits);
 
             return resultWrapper;
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            throw new RuntimeException(throwable);
         } finally {
             if(iReader != null){
                 try {

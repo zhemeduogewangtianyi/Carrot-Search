@@ -1,5 +1,6 @@
 package com.carrot.jdbc;
 
+import com.alibaba.fastjson.JSONObject;
 import com.carrot.net.NetUnion;
 
 import java.io.*;
@@ -9,6 +10,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class Statement implements java.sql.Statement {
 
@@ -47,6 +51,13 @@ public class Statement implements java.sql.Statement {
         if (bw != null) {
             try {
                 bw.close();
+            } catch (IOException e) {
+                throw new SQLException(e);
+            }
+        }
+        if(br != null){
+            try {
+                br.close();
             } catch (IOException e) {
                 throw new SQLException(e);
             }
@@ -110,7 +121,27 @@ public class Statement implements java.sql.Statement {
 
     @Override
     public boolean execute(String sql) throws SQLException {
-        return false;
+        try {
+            bw.write(sql);
+            bw.write("\n");
+            bw.flush();
+
+            String data = br.readLine();
+            JSONObject resultObj = JSONObject.parseObject(data);
+            if(resultObj != null){
+                Integer code = (Integer)resultObj.get("code");
+                if(code == 200){
+                    return (Boolean) resultObj.get("data");
+                }else{
+                    throw new IOException(resultObj.get("msg").toString());
+                }
+            }else{
+                return true;
+            }
+
+        } catch (IOException e) {
+            throw new SQLException(e);
+        }
     }
 
     @Override

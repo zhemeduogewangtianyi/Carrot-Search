@@ -1,0 +1,3 @@
+add=com.carrot.sec.handle.AddContextHandle
+query=com.carrot.sec.handle.QueryContextHandle
+update=com.carrot.sec.handle.UpdateContextHandle

@@ -10,7 +10,7 @@ import java.util.Date;
 @Data
 public class Student {
 
-    @CSearchQuery(enums = NewCFieldTypeEnum.LONG_POINT,sort = true)
+    @CSearchQuery(enums = NewCFieldTypeEnum.LONG_POINT,sort = true,updateFlag = true)
     @CSearchAdd(enums = NewCFieldTypeEnum.LONG_POINT)
     private Long id ;
 

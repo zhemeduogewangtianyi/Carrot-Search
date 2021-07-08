@@ -114,9 +114,9 @@ public class DeleteDoc {
             System.out.println("还剩 " + indexWriter.numRamDocs());
 
             return indexWriter.hasDeletions();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            throw new RuntimeException(throwable);
         } finally {
             if(indexWriter != null){
                 try {

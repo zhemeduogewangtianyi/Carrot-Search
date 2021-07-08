@@ -24,4 +24,13 @@ public enum NewOperationTypeEnum {
     public Integer getValue() {
         return value;
     }
+
+    public static NewOperationTypeEnum getByValue(Integer value){
+        for(NewOperationTypeEnum typeEnum : NewOperationTypeEnum.values()){
+            if(typeEnum.getValue().equals(value)){
+                return typeEnum;
+            }
+        }
+        return null;
+    }
 }

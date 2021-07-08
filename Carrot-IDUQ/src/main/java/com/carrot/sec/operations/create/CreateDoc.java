@@ -94,6 +94,11 @@ public class CreateDoc {
 
             iWriter.close();
 
+            return true;
+
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            throw new RuntimeException(throwable);
         } finally {
             if (iWriter != null) {
                 try {
@@ -111,8 +116,6 @@ public class CreateDoc {
             }
         }
 
-
-        return true;
     }
 
 }

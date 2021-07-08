@@ -30,11 +30,13 @@ public class CarrotSearchServer extends ServerSocket implements Runnable {
         while (true) {
 
             Socket socket = null;
+            BufferedReader br = null;
+            BufferedWriter bw = null;
             try {
 
                 socket = this.accept();
                 InputStream is = socket.getInputStream();
-                BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+                br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
                 String data;
                 while ((data = br.readLine()) != null) {
 
@@ -43,64 +45,37 @@ public class CarrotSearchServer extends ServerSocket implements Runnable {
                     Map<String, Object> res = new HashMap<>(8);
                     switch (operationTypeEnum) {
                         case ADD:
-                            try{
-                                boolean doc = new CreateDoc().createDoc(jsonSearchContext);
-                                res.put("code", 200);
-                                res.put("msg", "success");
-                                res.put("data", doc);
-                            }catch(Exception e){
-                                res.put("code", 500);
-                                res.put("msg", e.getMessage());
-                                res.put("data", null);
-                            }
+                            boolean add = new CreateDoc().createDoc(jsonSearchContext);
+                            res.put("code", 200);
+                            res.put("msg", "success");
+                            res.put("data", add);
                             break;
                         case QUERY:
-                            try{
-                                Map<String, Object> result = new QueryDoc().queryDoc(jsonSearchContext);
-                                res.put("code", 200);
-                                res.put("msg", "success");
-                                res.put("data", result.get("data"));
-                                res.put("pageSize", result.get("pageSize"));
-                                res.put("total", result.get("total"));
-                            }catch(Exception e){
-                                e.printStackTrace();
-                                res.put("code", 500);
-                                res.put("msg", e.getMessage());
-                                res.put("data", null);
-                                res.put("pageSize",0);
-                                res.put("total", 0);
-                            }
+                            Map<String, Object> result = new QueryDoc().queryDoc(jsonSearchContext);
+                            res.put("code", 200);
+                            res.put("msg", "success");
+                            res.put("data", result.get("data"));
+                            res.put("pageSize", result.get("pageSize"));
+                            res.put("total", result.get("total"));
                             break;
                         case DELETE:
-                            try{
-                                boolean doc = new DeleteDoc().deleteDoc(jsonSearchContext);
-                                res.put("code", 200);
-                                res.put("msg", "success");
-                                res.put("data", doc);
-                            }catch(Exception e){
-                                res.put("code", 500);
-                                res.put("msg", e.getMessage());
-                                res.put("data", null);
-                            }
+                            boolean del = new DeleteDoc().deleteDoc(jsonSearchContext);
+                            res.put("code", 200);
+                            res.put("msg", "success");
+                            res.put("data", del);
                             break;
                         case UPDATE:
-                            try{
-                                boolean doc = new UpdateDoc().updateDoc(jsonSearchContext,jsonSearchContext.getTargetJsonSearchContext());
-                                res.put("code", 200);
-                                res.put("msg", "success");
-                                res.put("data", doc);
-                            }catch(Exception e){
-                                res.put("code", 500);
-                                res.put("msg", e.getMessage());
-                                res.put("data", null);
-                            }
+                            boolean update = new UpdateDoc().updateDoc(jsonSearchContext);
+                            res.put("code", 200);
+                            res.put("msg", "success");
+                            res.put("data", update);
                             break;
                         default:
                             break;
                     }
 
                     OutputStream os = socket.getOutputStream();
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
+                    bw = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
                     bw.write(JSON.toJSONString(res));
                     bw.write("\n");
                     bw.flush();
@@ -114,7 +89,7 @@ public class CarrotSearchServer extends ServerSocket implements Runnable {
 
                 try{
                     OutputStream os = socket.getOutputStream();
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
+                    bw = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
 
                     Map<String, Object> res = new HashMap<>(8);
                     res.put("code", 500);
@@ -123,6 +98,14 @@ public class CarrotSearchServer extends ServerSocket implements Runnable {
                     bw.write(JSON.toJSONString(res));
                     bw.write("\n");
                     bw.flush();
+                    bw.close();
+                    if(br != null){
+                        br.close();
+                    }
+                    if(socket != null){
+                        socket.close();
+                    }
+
                 }catch (Exception ex){
                     ex.printStackTrace();
                 }

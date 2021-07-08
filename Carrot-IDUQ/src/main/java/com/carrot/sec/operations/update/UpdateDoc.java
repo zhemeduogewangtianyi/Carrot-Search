@@ -32,9 +32,9 @@ public class UpdateDoc {
 
     private static final List<Handle> C_FIELD_HANDLES = HandleInstance.getcFieldHandles();
 
-    public boolean updateDoc(JsonSearchContext sourceJsc,JsonSearchContext targetJsc) {
+    public boolean updateDoc(JsonSearchContext jsc) {
 
-        CSearchConfig searchConfig = CSearchConfig.getConfig(sourceJsc.getClassName());
+        CSearchConfig searchConfig = CSearchConfig.getConfig(jsc.getClassName());
 
         Directory directory = null;
         DirectoryReader iReader = null;
@@ -53,11 +53,7 @@ public class UpdateDoc {
 
             List<SortField> sortFields = new ArrayList<>();
 
-            CSearchPipeContext context = new CSearchPipeContext(OperationTypeEnum.QUERY);
-
-            context.setAnalyzer(searchConfig.getAnalyzer());
-
-            List<JsonFieldContext> fieldContexts = sourceJsc.getFieldContexts();
+            List<JsonFieldContext> fieldContexts = jsc.getFieldContexts();
 
             for(JsonFieldContext jfc : fieldContexts){
 
@@ -70,38 +66,38 @@ public class UpdateDoc {
                 fieldContext.setFieldValue(fieldValue);
 
                 JsonQueryFieldContext queryFieldContext = jfc.getJsonQueryFieldContext();
-                String queryType = queryFieldContext.getType();
-                boolean queryIsSort = queryFieldContext.isSort();
-                String occur = queryFieldContext.getOccur();
+                if(queryFieldContext != null){
+                    String queryType = queryFieldContext.getType();
+                    boolean queryIsSort = queryFieldContext.isSort();
+                    String occur = queryFieldContext.getOccur();
 
-                CSearchPipeQueryContext queryContext = new CSearchPipeQueryContext(builder);
+                    CSearchPipeQueryContext queryContext = new CSearchPipeQueryContext(builder);
 
-                queryContext.setEnums(CFieldPipeTypeEnum.getEnumByFlag(queryType));
-                queryContext.setSort(queryIsSort);
-                if(occur.equals(OccurEnum.Occur.MUST.toString())){
-                    queryContext.setOccur(BooleanClause.Occur.MUST);
-                }else if(occur.equals(OccurEnum.Occur.FILTER.toString())){
-                    queryContext.setOccur(BooleanClause.Occur.FILTER);
-                }else if(occur.equals(OccurEnum.Occur.SHOULD.toString())){
-                    queryContext.setOccur(BooleanClause.Occur.SHOULD);
-                }else if(occur.equals(OccurEnum.Occur.MUST_NOT.toString())){
-                    queryContext.setOccur(BooleanClause.Occur.MUST_NOT);
-                }else{
-                    throw new RuntimeException("not found occur !");
+                    queryContext.setEnums(CFieldPipeTypeEnum.getEnumByFlag(queryType));
+                    queryContext.setSort(queryIsSort);
+                    if(occur.equals(OccurEnum.Occur.MUST.toString())){
+                        queryContext.setOccur(BooleanClause.Occur.MUST);
+                    }else if(occur.equals(OccurEnum.Occur.FILTER.toString())){
+                        queryContext.setOccur(BooleanClause.Occur.FILTER);
+                    }else if(occur.equals(OccurEnum.Occur.SHOULD.toString())){
+                        queryContext.setOccur(BooleanClause.Occur.SHOULD);
+                    }else if(occur.equals(OccurEnum.Occur.MUST_NOT.toString())){
+                        queryContext.setOccur(BooleanClause.Occur.MUST_NOT);
+                    }else{
+                        throw new RuntimeException("not found occur !");
+                    }
+
+                    fieldContext.setQueryContext(queryContext);
                 }
 
-                fieldContext.setQueryContext(queryContext);
-
                 for(Handle handle : C_FIELD_HANDLES){
-                    if(!handle.support(context)){
+                    if(!handle.support(fieldContext)){
                         continue;
                     }
-                    Boolean res = (Boolean)handle.handle(context);
+                    Boolean res = (Boolean)handle.handle(fieldContext);
                     sortFields.addAll(fieldContext.getSortFields());
 
                 }
-
-                context.addFieldContext(fieldContext);
 
             }
 
@@ -114,20 +110,14 @@ public class UpdateDoc {
             indexWriter.deleteDocuments(query);
             indexWriter.forceMergeDeletes();
 
-            System.out.println("删除了 " + indexWriter.hasDeletions());
-            System.out.println("还剩 " + indexWriter.numRamDocs());
-
+//            System.out.println("删除了 " + indexWriter.hasDeletions());
+//            System.out.println("还剩 " + indexWriter.numRamDocs());
 
             Document doc = new Document();
 
-            CSearchPipeContext targetContext = new CSearchPipeContext(OperationTypeEnum.ADD);
-
-            targetContext.setAnalyzer(config.getAnalyzer());
-
-            List<JsonFieldContext> targetFieldContexts = targetJsc.getFieldContexts();
+            List<JsonFieldContext> targetFieldContexts = jsc.getFieldContexts();
 
             for(JsonFieldContext jfc : targetFieldContexts){
-
 
                 CSearchPipeFieldContext fieldContext = new CSearchPipeFieldContext();
 
@@ -150,28 +140,28 @@ public class UpdateDoc {
 
                 fieldContext.setAddContext(addContext);
 
-                targetContext.addFieldContext(fieldContext);
-
-                C_FIELD_HANDLES.forEach(extendsion -> {
-
-                    if (extendsion.support(targetContext)) {
-                        Object handle = extendsion.handle(targetContext);
-                        if (handle != null) {
-                            IndexableField res = (IndexableField) handle;
-                            doc.add(res);
-
-                        }
+                for(Handle extendsion : C_FIELD_HANDLES){
+                    if(!extendsion.support(fieldContext)){
+                        continue;
                     }
-                });
+                    Object handle = extendsion.handle(fieldContext);
+                    if (handle != null) {
+                        IndexableField res = (IndexableField) handle;
+                        doc.add(res);
+
+                    }
+
+                }
 
             }
 
-            long l1 = indexWriter.addDocument(doc);
+            indexWriter.addDocument(doc);
 
-            System.out.println(l1);
+            return true;
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            throw new RuntimeException(throwable);
         } finally {
             if(indexWriter != null){
                 try {
@@ -195,8 +185,6 @@ public class UpdateDoc {
                 }
             }
         }
-
-        return true;
 
     }
 

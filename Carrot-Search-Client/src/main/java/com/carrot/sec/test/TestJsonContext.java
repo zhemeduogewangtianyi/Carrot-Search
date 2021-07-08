@@ -50,7 +50,7 @@ public class TestJsonContext {
 
         Student stu = new Student();
 //        stu.setId(Long.parseLong(i + ""));
-        stu.setId(3210L);
+        stu.setId(3211L);
 //        stu.setName("周童童");
 //        stu.setAge();
 //        stu.setDesc("周童童 是一个好学生，太好了，真的是太好了！￥%……");
@@ -67,7 +67,7 @@ public class TestJsonContext {
         JsonSearchContext context = new JsonSearchContext();
         context.setCurrent(current == null ? 1 : current);
         context.setPageSize(pageSize == null ? 10 : pageSize);
-        context.setOperationType(NewOperationTypeEnum.QUERY.getValue());
+        context.setOperationType(NewOperationTypeEnum.DELETE.getValue());
 
         //doc name
         String simpleName = aClass.getSimpleName();
@@ -131,27 +131,29 @@ public class TestJsonContext {
 
         }
 
-//        CarrotSearchClient carrotSearchClient = null;
-//        try {
-//            carrotSearchClient = new CarrotSearchClient("127.0.0.1", 9527);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        String send = carrotSearchClient.send(JSON.toJSONString(context));
-//
-//        System.out.println(send);
-
+        CarrotSearchClient carrotSearchClient = null;
         try {
-            Connection connection = DriverManager.getConnection("jdbc:carrot-search://127.0.0.1:9527/temp", "root", "root");
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(JSON.toJSONString(context));
-            while (resultSet.next()) {
-                Student unwrap = resultSet.unwrap(Student.class);
-                System.out.println(unwrap);
-            }
-        } catch (SQLException e) {
+            carrotSearchClient = new CarrotSearchClient("127.0.0.1", 9527);
+        } catch (IOException e) {
             e.printStackTrace();
         }
+        String send = carrotSearchClient.send(JSON.toJSONString(context));
+
+        System.out.println(send);
+
+//        try {
+//            Connection connection = DriverManager.getConnection("jdbc:carrot-search://127.0.0.1:9527/temp", "root", "root");
+//            Statement statement = connection.createStatement();
+//            statement.execute(JSON.toJSONString(context));
+//            ResultSet resultSet = statement.executeQuery(JSON.toJSONString(context));
+//            while (resultSet.next()) {
+//                Student unwrap = resultSet.unwrap(Student.class);
+//                System.out.println(unwrap);
+//            }
+//            resultSet.close();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
 
     }
 

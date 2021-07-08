@@ -111,8 +111,11 @@ public class UpdateDoc {
                 query = new MatchAllDocsQuery();
             }
 
-            long l = indexWriter.deleteDocuments(query);
-            System.out.println(l);
+            indexWriter.deleteDocuments(query);
+            indexWriter.forceMergeDeletes();
+
+            System.out.println("删除了 " + indexWriter.hasDeletions());
+            System.out.println("还剩 " + indexWriter.numRamDocs());
 
 
             Document doc = new Document();

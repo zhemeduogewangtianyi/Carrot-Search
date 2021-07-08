@@ -49,7 +49,7 @@ public class DeleteDoc {
 
             List<SortField> sortFields = new ArrayList<>();
 
-            CSearchPipeContext context = new CSearchPipeContext(OperationTypeEnum.QUERY);
+            CSearchPipeContext context = new CSearchPipeContext(OperationTypeEnum.DELETE);
 
             context.setAnalyzer(searchConfig.getAnalyzer());
 
@@ -89,10 +89,10 @@ public class DeleteDoc {
                 fieldContext.setQueryContext(queryContext);
 
                 for(Handle handle : C_FIELD_HANDLES){
-                    if(!handle.support(context)){
+                    if(!handle.support(fieldContext)){
                         continue;
                     }
-                    Boolean res = (Boolean)handle.handle(context);
+                    Boolean res = (Boolean)handle.handle(fieldContext);
                     sortFields.addAll(fieldContext.getSortFields());
 
                 }
@@ -107,12 +107,16 @@ public class DeleteDoc {
                 query = new MatchAllDocsQuery();
             }
 
-            long l = indexWriter.deleteDocuments(query);
-            System.out.println(l);
+            indexWriter.deleteDocuments(query);
+            indexWriter.forceMergeDeletes();
 
+            System.out.println("删除了 " + indexWriter.hasDeletions());
+            System.out.println("还剩 " + indexWriter.numRamDocs());
 
+            return indexWriter.hasDeletions();
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         } finally {
             if(indexWriter != null){
                 try {
@@ -136,8 +140,6 @@ public class DeleteDoc {
                 }
             }
         }
-
-        return true;
 
     }
 

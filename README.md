@@ -16,6 +16,10 @@
   - [x] 基本分词配置
 
 * [ ] [鉴权](./README.md)
+  
+* [ ] [数据同步](./README.md)
+  
+* [ ] [ETL](./README.md)
 
 * [ ] [仓库](./README.md)
 

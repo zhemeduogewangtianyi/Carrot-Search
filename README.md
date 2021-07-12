@@ -4,26 +4,21 @@
 * [x] [客户端](./README.md)
     - [x] [SOCKET](./README.md)
       - [x] [Operations](./README.md) 客户端增删改查
-      - [ ] [jdbc](./README.md)  JDBC 规范
         
+      - [ ] [jdbc](./README.md)  JDBC 规范
         - [x] [Driver](./README.md)  驱动
          
         - [x] [Connection](./README.md) 连接器
-          
           - [x] [connect](./README.md) 获取链接
           - [x] [createStatement](./README.md) 创建执行器
           - [x] [close](./README.md) 关闭连接器
          
         - [x] [Statement](./README.md) 执行器
-         
           - [x] [executeQuery](./README.md) 查询
-           
           - [x] [close](./README.md) 关闭执行器
-           
           - [x] [execute](./README.md) 执行 DSL
           
         - [x] [ResultSet](./README.md) 结果集
-          
           - [x] [next](./README.md) 是否有下一个元素
           - [x] [close](./README.md) 关闭结果集
           - [x] [getString](./README.md) 获取一个 String

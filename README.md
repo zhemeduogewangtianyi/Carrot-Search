@@ -26,6 +26,8 @@
 * [ ] [告警](./README.md)
   
 * [ ] [控制台](./README.md)
+  
+* [ ] [补偿](./README.md)
 
 * [ ] [仓库](./README.md)
 

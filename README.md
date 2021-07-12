@@ -48,11 +48,12 @@
      
     - [ ] [SSH](./README.md)
 
+
 * [x] [服务端](./README.md)
-  - [x] [CreateDoc](./README.md) 服务端新增
-  - [x] [DeleteDoc](./README.md) 服务端删除  
-  - [x] [UpdateDoc](./README.md) 服务端修改
-  - [x] [QueryDoc](./README.md)  服务端查询
+  - [x] [CRUD](./README.md) 增删改查
+  - [x] [SOCKET](./README.md) SOCKET 服务  
+  - [x] [context-parser](./README.md) 上下文解析
+  - [x] [lucene](./README.md)  倒排封装
   
 * [ ] [配置](./README.md)
   - [x] 路径配置

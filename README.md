@@ -72,5 +72,5 @@
 
 * [ ] [仓库](./README.md)
   
-* [ ] [ID自增](./README.md)
+* [ ] [主键策略](./README.md)
 

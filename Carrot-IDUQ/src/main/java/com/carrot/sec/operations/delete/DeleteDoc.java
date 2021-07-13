@@ -110,8 +110,8 @@ public class DeleteDoc {
             indexWriter.deleteDocuments(query);
             indexWriter.forceMergeDeletes();
 
-            System.out.println("删除了 " + indexWriter.hasDeletions());
-            System.out.println("还剩 " + indexWriter.numRamDocs());
+//            System.out.println("删除了 " + indexWriter.hasDeletions());
+//            System.out.println("还剩 " + indexWriter.numRamDocs());
 
             return indexWriter.hasDeletions();
         } catch (Throwable throwable) {

@@ -15,7 +15,7 @@ public class TestMain {
 
         long start = System.currentTimeMillis();
 
-        Operations operations = new Operation();
+        Operations operations = new Operation("jdbc:carrot-search://127.0.0.1:9527/temp","root", "root");
 
         Student insert = new Student();
         insert.setId(1L);
@@ -61,8 +61,7 @@ public class TestMain {
 
 
         Student stu = new Student();
-        Operations operation = new Operation();
-        List<Map<String, Object>> select = operation.select(stu, 0, 1000000000);
+        List<Map<String, Object>> select = operations.select(stu, 0, 1000000000);
         System.out.println("查询全部结果：" + select.size());
 
 

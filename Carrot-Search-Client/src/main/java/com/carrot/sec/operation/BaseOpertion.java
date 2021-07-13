@@ -13,6 +13,15 @@ import java.util.List;
 public class BaseOpertion {
 
     protected static final List<Handle> OPERATION_HANDLES = new ArrayList<>();
+    protected final String url ;
+    protected final String username ;
+    protected final String password ;
+
+    public BaseOpertion(String url,String username , String password) {
+        this.url = url;
+        this.username = username;
+        this.password = password;
+    }
 
     static {
         try {

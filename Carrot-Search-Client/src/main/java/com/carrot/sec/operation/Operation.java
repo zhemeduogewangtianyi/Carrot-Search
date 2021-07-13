@@ -16,6 +16,11 @@ import java.util.Map;
 
 public class Operation extends BaseOpertion implements Operations {
 
+
+    public Operation(String url, String username, String password) {
+        super(url, username, password);
+    }
+
     @Override
     public boolean create(Object obj) throws Throwable {
         Class<?> aClass = obj.getClass();
@@ -45,7 +50,7 @@ public class Operation extends BaseOpertion implements Operations {
         Connection connection = null;
         Statement statement = null;
         try {
-            connection = DriverManager.getConnection("jdbc:carrot-search://127.0.0.1:9527/temp", "root", "root");
+            connection = DriverManager.getConnection(super.url, super.username, super.password);
             statement = connection.createStatement();
             return statement.execute(JSON.toJSONString(context));
         } catch (SQLException e) {
@@ -90,7 +95,7 @@ public class Operation extends BaseOpertion implements Operations {
         Connection connection = null;
         Statement statement = null;
         try {
-            connection = DriverManager.getConnection("jdbc:carrot-search://127.0.0.1:9527/temp", "root", "root");
+            connection = DriverManager.getConnection(super.url, super.username, super.password);
             statement = connection.createStatement();
             return statement.execute(JSON.toJSONString(context));
         } catch (SQLException e) {
@@ -149,7 +154,7 @@ public class Operation extends BaseOpertion implements Operations {
         Connection connection = null;
         Statement statement = null;
         try {
-            connection = DriverManager.getConnection("jdbc:carrot-search://127.0.0.1:9527/temp", "root", "root");
+            connection = DriverManager.getConnection(super.url, super.username, super.password);
             statement = connection.createStatement();
 
             return statement.execute(JSON.toJSONString(context));
@@ -228,7 +233,7 @@ public class Operation extends BaseOpertion implements Operations {
         Statement statement = null;
         ResultSet resultSet = null;
         try {
-            connection = DriverManager.getConnection("jdbc:carrot-search://127.0.0.1:9527/temp", "root", "root");
+            connection = DriverManager.getConnection(super.url, super.username, super.password);
             statement = connection.createStatement();
 
 //            boolean execute = statement.execute(JSON.toJSONString(context));

@@ -4,6 +4,7 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 @Data
@@ -53,7 +54,9 @@ public class NetUnion {
             }
 
             document = split[1];
-            socket = new Socket(ip,Integer.parseInt(port));
+            socket = new Socket();
+            //超时时间，后续 client 可配置
+            socket.connect(new InetSocketAddress(ip,Integer.parseInt(port)),5000);
 
         }else{
             throw new IllegalArgumentException("document can't null !");
